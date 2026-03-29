@@ -43,6 +43,7 @@ This application acts as a **personal life operating system**, allowing users to
 
 ### 📅 Plans
 <img width="1919" height="1079" alt="2" src="https://github.com/user-attachments/assets/73da0c2d-8807-445a-a3e8-63ec276ac053" />
+
 * Daily, Weekly, Monthly task management
 * Add, edit, delete, complete tasks
 * Internal scrolling task containers
@@ -53,6 +54,7 @@ This application acts as a **personal life operating system**, allowing users to
 
 ### 📚 Study System
 <img width="1919" height="1079" alt="3" src="https://github.com/user-attachments/assets/9d180c55-94d1-43df-8887-e52394e0b210" />
+
 * Create study blocks
 * Add and manage study tasks
 * Track progress per subject
@@ -62,6 +64,7 @@ This application acts as a **personal life operating system**, allowing users to
 
 ### 📖 Documents System
 <img width="1919" height="1079" alt="4" src="https://github.com/user-attachments/assets/76b74f07-6cae-4125-907e-a03e17952fa7" />
+
 * Upload and manage PDF books
 * Open and read documents
 * Page navigation with thumbnails
@@ -87,6 +90,7 @@ This application acts as a **personal life operating system**, allowing users to
 
 ### ⏱ Time (Focus System)
 <img width="1919" height="1079" alt="7" src="https://github.com/user-attachments/assets/096ceea7-8094-4eb8-8021-40b4d4166a0e" />
+
 * Countdown timer (Focus / Break)
 * Stopwatch mode
 * Start / Pause / Reset controls
