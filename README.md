@@ -68,6 +68,9 @@ This application acts as a **personal life operating system**, allowing users to
 * Upload and manage PDF books
 * Open and read documents
 * Page navigation with thumbnails
+
+<img width="1919" height="1079" alt="5" src="https://github.com/user-attachments/assets/40502d93-c1ad-4331-b96a-999c6b8c9abf" />
+
 * Annotation tools:
   * Pen
   * Colors
