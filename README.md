@@ -1,7 +1,7 @@
 ![Status](https://img.shields.io/badge/status-active-success)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-# Osphere-Tracking-Panel
+# Osfer-Tracking-Panel
 A multi-purpose personal productivity system for planning, tracking progress, managing habits, reading, and focus sessions in a unified dashboard.
 
 # 🧠 Personal Productivity and Progress Tracking System
