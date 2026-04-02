@@ -1,9 +1,10 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { User, Calendar, BookOpen, Clock, Link as LinkIcon, Settings, ChevronLeft, ChevronRight, BookMarked } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTheme } from 'next-themes';
 import { useGlobalStore } from '@/lib/store/GlobalStore';
 import { InlineEditor } from '@/components/shared/InlineEditor';
 
@@ -18,7 +19,29 @@ const navItems = [
 export function Sidebar() {
   const [isExpanded, setIsExpanded] = useState(true);
   const pathname = usePathname();
+  const { theme } = useTheme();
   const { profile, updateProfile } = useGlobalStore();
+  const isFirstRender = useRef(true);
+
+  // Tema değiştiğinde sidebar'ı yenilemek için otomatik kapatıp açma (Renk senkronizasyonu hatasını çözmek için)
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    // Yalnızca menü açıkken (isExpanded = true) yenileme işlemi yap (Kullanıcı talebi)
+    if (!isExpanded) return;
+
+    const currentState = isExpanded;
+    setIsExpanded(!currentState);
+    
+    const timer = setTimeout(() => {
+      setIsExpanded(currentState);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [theme]);
 
   return (
     <motion.aside
