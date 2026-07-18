@@ -75,29 +75,65 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
   const [wisdomQuotes, setWisdomQuotes] = useState<WisdomQuote[]>([]);
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
 
-  // Hydrate from localStorage
+  // Hydrate from local file database (with localStorage as fallback)
   useEffect(() => {
-    const saved = loadFromStorage();
-    if (saved) {
-      if (saved.profile) setProfile({ ...emptyDefaults.profile, ...saved.profile });
-      if (saved.timerPrefs) setTimerPrefs({ ...emptyDefaults.timerPrefs, ...saved.timerPrefs });
-      if (saved.timerState) setTimerState({ ...emptyDefaults.timerState, ...saved.timerState });
-      if (saved.focusSessions) setFocusSessions(saved.focusSessions);
-      if (saved.tasks) setTasks(saved.tasks);
-      if (saved.studyBlocks) setStudyBlocks(saved.studyBlocks);
-      if (saved.documents) setDocuments(saved.documents);
-      if (saved.chains) setChains(saved.chains);
-      if (saved.wisdomQuotes) setWisdomQuotes(saved.wisdomQuotes);
-      if (saved.roadmaps) setRoadmaps(saved.roadmaps);
-    }
-    setHydrated(true);
+    const hydrate = async () => {
+      let saved: Partial<StoredData> | null = null;
+      try {
+        const res = await fetch('/api/db');
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.data) {
+            saved = json.data;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load from local file DB, trying localStorage...', err);
+      }
+
+      if (!saved) {
+        saved = loadFromStorage();
+      }
+
+      if (saved) {
+        if (saved.profile) setProfile({ ...emptyDefaults.profile, ...saved.profile });
+        if (saved.timerPrefs) setTimerPrefs({ ...emptyDefaults.timerPrefs, ...saved.timerPrefs });
+        if (saved.timerState) setTimerState({ ...emptyDefaults.timerState, ...saved.timerState });
+        if (saved.focusSessions) setFocusSessions(saved.focusSessions);
+        if (saved.tasks) setTasks(saved.tasks);
+        if (saved.studyBlocks) setStudyBlocks(saved.studyBlocks);
+        if (saved.documents) setDocuments(saved.documents);
+        if (saved.chains) setChains(saved.chains);
+        if (saved.wisdomQuotes) setWisdomQuotes(saved.wisdomQuotes);
+        if (saved.roadmaps) setRoadmaps(saved.roadmaps);
+      }
+      setHydrated(true);
+    };
+
+    hydrate();
   }, []);
 
   // Persist on change with debounce to avoid blocking main thread on every update
   useEffect(() => {
     if (!hydrated) return;
-    const timeoutId = setTimeout(() => {
-      saveToStorage({ profile, timerPrefs, timerState, focusSessions, tasks, studyBlocks, documents, chains, wisdomQuotes, roadmaps });
+    const timeoutId = setTimeout(async () => {
+      const dataToSave = { profile, timerPrefs, timerState, focusSessions, tasks, studyBlocks, documents, chains, wisdomQuotes, roadmaps };
+      
+      // 1. Save to LocalStorage as a fallback
+      saveToStorage(dataToSave);
+      
+      // 2. Save to local file DB on disk
+      try {
+        await fetch('/api/db', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(dataToSave),
+        });
+      } catch (err) {
+        console.error('Failed to save to local file DB:', err);
+      }
     }, 1000); // 1-second debounce
     
     return () => clearTimeout(timeoutId);
