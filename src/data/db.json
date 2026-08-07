@@ -2355,6 +2355,10 @@
         "2026-08-06": {
           "note": "ezilenlerin pedagojisi 25 syf",
           "color": "#4f46e5"
+        },
+        "2026-08-07": {
+          "note": "Kitap okundu",
+          "color": "#10b981"
         }
       }
     },
@@ -2510,6 +2514,10 @@
         "2026-08-06": {
           "note": "sabah",
           "color": "#4f46e5"
+        },
+        "2026-08-07": {
+          "note": "kıldım",
+          "color": "#10b981"
         }
       }
     }

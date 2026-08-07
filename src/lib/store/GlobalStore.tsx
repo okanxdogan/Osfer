@@ -109,6 +109,26 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(initialStoreDefaults.calendarEvents || emptyDefaults.calendarEvents || []);
 
 
+function mergeChainsData(...chainSources: (Chain[] | undefined)[]): Chain[] {
+  const map = new Map<string, Chain>();
+  for (const list of chainSources) {
+    if (!list) continue;
+    for (const c of list) {
+      if (!map.has(c.id)) {
+        map.set(c.id, { ...c, days: { ...(c.days || {}) } });
+      } else {
+        const existing = map.get(c.id)!;
+        map.set(c.id, {
+          ...existing,
+          title: c.title || existing.title,
+          days: { ...existing.days, ...(c.days || {}) },
+        });
+      }
+    }
+  }
+  return Array.from(map.values());
+}
+
   // Hydrate from local file database (with localStorage as fallback)
   useEffect(() => {
     const hydrate = async () => {
@@ -134,29 +154,35 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
         } catch { /* fallback to local storage */ }
       }
 
-      if (!saved) {
-        saved = loadFromStorage();
-      }
+      const localSaved = loadFromStorage();
 
+      // Merge chains from all sources (initialDbData, API DB, localStorage) so no completed days are lost
+      const mergedChains = mergeChainsData(
+        initialStoreDefaults.chains,
+        saved?.chains,
+        localSaved?.chains
+      );
+      setChains(mergedChains);
 
-      if (saved) {
-        if (saved.profile) setProfile({ ...emptyDefaults.profile, ...saved.profile });
-        if (saved.timerPrefs) setTimerPrefs({ ...emptyDefaults.timerPrefs, ...saved.timerPrefs });
-        if (saved.timerState) setTimerState({ ...emptyDefaults.timerState, ...saved.timerState });
-        if (saved.focusSessions) setFocusSessions(saved.focusSessions);
-        if (saved.tasks) setTasks(saved.tasks);
-        if (saved.studyBlocks) setStudyBlocks(saved.studyBlocks);
-        if (saved.documents) setDocuments(saved.documents);
-        if (saved.chains) setChains(saved.chains);
-        if (saved.wisdomQuotes) setWisdomQuotes(saved.wisdomQuotes);
-        if (saved.roadmaps) setRoadmaps(saved.roadmaps);
-        if (saved.calendarEvents) setCalendarEvents(saved.calendarEvents);
+      if (saved || localSaved) {
+        const source = saved || localSaved!;
+        if (source.profile) setProfile({ ...emptyDefaults.profile, ...source.profile });
+        if (source.timerPrefs) setTimerPrefs({ ...emptyDefaults.timerPrefs, ...source.timerPrefs });
+        if (source.timerState) setTimerState({ ...emptyDefaults.timerState, ...source.timerState });
+        if (source.focusSessions) setFocusSessions(source.focusSessions);
+        if (source.tasks) setTasks(source.tasks);
+        if (source.studyBlocks) setStudyBlocks(source.studyBlocks);
+        if (source.documents) setDocuments(source.documents);
+        if (source.wisdomQuotes) setWisdomQuotes(source.wisdomQuotes);
+        if (source.roadmaps) setRoadmaps(source.roadmaps);
+        if (source.calendarEvents) setCalendarEvents(source.calendarEvents);
       }
       setHydrated(true);
     };
 
     hydrate();
   }, []);
+
 
   // Persist on change with debounce to avoid blocking main thread on every update
   useEffect(() => {
