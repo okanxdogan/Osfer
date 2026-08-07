@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
@@ -26,12 +29,21 @@ const getDbData = () => {
       }
     }
   } catch (e) {}
-  return (defaultData as any)?.default || defaultData;
+
+  const rawDefault = (defaultData as any)?.default || defaultData;
+  if (isValidDb(rawDefault)) {
+    return rawDefault;
+  }
+  return defaultData;
 };
 
 export async function GET() {
   const data = getDbData();
-  return NextResponse.json({ data });
+  return NextResponse.json({ data }, {
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    }
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -47,3 +59,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to write data' }, { status: 500 });
   }
 }
+
