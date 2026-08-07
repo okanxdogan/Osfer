@@ -38,13 +38,24 @@ const getDbData = () => {
 };
 
 export async function GET() {
-  const data = getDbData();
-  return NextResponse.json({ data }, {
+  try {
+    if (fs.existsSync(DB_PATH)) {
+      const rawData = fs.readFileSync(DB_PATH, 'utf-8');
+      const parsed = JSON.parse(rawData);
+      if (isValidDb(parsed)) {
+        return NextResponse.json({ data: parsed });
+      }
+    }
+  } catch (e) {}
+
+  const fallback = (defaultData as any)?.default || defaultData;
+  return NextResponse.json({ data: fallback }, {
     headers: {
-      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
     }
   });
 }
+
 
 export async function POST(req: NextRequest) {
   try {
