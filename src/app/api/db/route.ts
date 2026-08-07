@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DB_DATA } from '@/data/dbData';
 
 export async function GET() {
-  return NextResponse.json({ data: DB_DATA });
+  return NextResponse.json({ data: { profile: { appName: "Okan" }, chains: [] } });
 }
 
 export async function POST(req: NextRequest) {
