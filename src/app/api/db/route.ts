@@ -1,5 +1,7 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const fetchCache = 'force-no-store';
+export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
@@ -25,17 +27,26 @@ export async function GET() {
       const rawData = fs.readFileSync(DB_PATH, 'utf-8');
       const parsed = JSON.parse(rawData);
       if (isValidDb(parsed)) {
-        return NextResponse.json({ data: parsed });
+        return NextResponse.json({ data: parsed }, {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+            'CDN-Cache-Control': 'no-store',
+            'Vercel-CDN-Cache-Control': 'no-store',
+          }
+        });
       }
     }
   } catch (e) {}
 
   return NextResponse.json({ data: DB_DATA }, {
     headers: {
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+      'CDN-Cache-Control': 'no-store',
+      'Vercel-CDN-Cache-Control': 'no-store',
     }
   });
 }
+
 
 export async function POST(req: NextRequest) {
   try {
