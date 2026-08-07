@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import defaultData from '@/data/db.json';
+import DB_DATA from '@/data/dbData';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
 
@@ -15,30 +15,22 @@ const ensureDir = () => {
   }
 };
 
-const extractDb = (input: any): any => {
-  if (!input || typeof input !== 'object') return null;
-  if (input.profile || input.chains || input.documents) return input;
-  if (input.default && (input.default.profile || input.default.chains || input.default.documents)) return input.default;
-  if (input.data && (input.data.profile || input.data.chains || input.data.documents)) return input.data;
-  return null;
+const isValidDb = (data: any) => {
+  return data && typeof data === 'object' && Boolean(data.profile);
 };
 
 export async function GET() {
-  let data = null;
-
   try {
     if (fs.existsSync(DB_PATH)) {
       const rawData = fs.readFileSync(DB_PATH, 'utf-8');
       const parsed = JSON.parse(rawData);
-      data = extractDb(parsed);
+      if (isValidDb(parsed)) {
+        return NextResponse.json({ data: parsed });
+      }
     }
   } catch (e) {}
 
-  if (!data) {
-    data = extractDb(defaultData);
-  }
-
-  return NextResponse.json({ data }, {
+  return NextResponse.json({ data: DB_DATA }, {
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate',
     }
@@ -48,10 +40,9 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const clean = extractDb(body);
-    if (clean) {
+    if (isValidDb(body)) {
       ensureDir();
-      fs.writeFileSync(DB_PATH, JSON.stringify(clean, null, 2), 'utf-8');
+      fs.writeFileSync(DB_PATH, JSON.stringify(body, null, 2), 'utf-8');
     }
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -59,5 +50,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to write data' }, { status: 500 });
   }
 }
+
 
 

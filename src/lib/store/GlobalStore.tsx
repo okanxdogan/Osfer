@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { GlobalState, ProfileState, TimerPreferences, TimerState, FocusSession, Task, StudyBlock, ReadingDocument, Chain, WisdomQuote, Roadmap, RoadmapNode, RoadmapEdge, CalendarEvent } from './types';
 
-import initialDbData from '@/data/db.json';
+import DB_DATA from '@/data/dbData';
 
 // ── localStorage helpers ──
 const STORAGE_KEY = 'osfer_store';
@@ -89,7 +89,7 @@ const emptyDefaults: StoredData = {
 
 const initialStoreDefaults: StoredData = {
   ...emptyDefaults,
-  ...(initialDbData as unknown as Partial<StoredData>),
+  ...(DB_DATA as unknown as Partial<StoredData>),
 };
 
 const GlobalContext = createContext<GlobalState | undefined>(undefined);
