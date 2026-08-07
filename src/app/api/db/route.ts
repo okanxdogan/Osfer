@@ -12,22 +12,24 @@ const ensureDir = () => {
   }
 };
 
-export async function GET() {
+const getDbData = () => {
   try {
-    ensureDir();
     if (fs.existsSync(DB_PATH)) {
       const rawData = fs.readFileSync(DB_PATH, 'utf-8');
       const parsed = JSON.parse(rawData);
       if (parsed && Object.keys(parsed).length > 0) {
-        return NextResponse.json({ data: parsed });
+        return parsed;
       }
     }
-    return NextResponse.json({ data: defaultData });
-  } catch (error) {
-    console.error('Failed to read local DB, returning static bundle data:', error);
-    return NextResponse.json({ data: defaultData });
-  }
+  } catch (e) {}
+  return (defaultData as any)?.default || defaultData;
+};
+
+export async function GET() {
+  const data = getDbData();
+  return NextResponse.json({ data });
 }
+
 
 
 export async function POST(req: NextRequest) {
