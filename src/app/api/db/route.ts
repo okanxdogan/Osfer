@@ -22,18 +22,20 @@ const isValidDb = (data: any) => {
 };
 
 export async function GET() {
+  let fileData: any = null;
   try {
     if (fs.existsSync(DB_PATH)) {
       const rawData = fs.readFileSync(DB_PATH, 'utf-8');
       const parsed = JSON.parse(rawData);
-      if (isValidDb(parsed)) {
-        return NextResponse.json({ data: parsed });
+      if (parsed && typeof parsed === 'object') {
+        fileData = parsed.data || parsed;
       }
     }
   } catch (e) {}
 
-  const payload = (DB_DATA as any).default || DB_DATA;
-  return NextResponse.json({ data: payload }, {
+  const db = (fileData && fileData.profile) ? fileData : DB_DATA;
+
+  return NextResponse.json({ data: db }, {
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
       'CDN-Cache-Control': 'no-store',
@@ -41,6 +43,7 @@ export async function GET() {
     }
   });
 }
+
 
 
 
