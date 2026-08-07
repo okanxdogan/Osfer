@@ -6,7 +6,7 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import DB_DATA from '@/data/dbData';
+import { DB_DATA } from '@/data/dbData';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
 

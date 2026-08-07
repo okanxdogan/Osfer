@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { GlobalState, ProfileState, TimerPreferences, TimerState, FocusSession, Task, StudyBlock, ReadingDocument, Chain, WisdomQuote, Roadmap, RoadmapNode, RoadmapEdge, CalendarEvent } from './types';
 
-import DB_DATA from '@/data/dbData';
+import { DB_DATA } from '@/data/dbData';
 
 // ── localStorage helpers ──
 const STORAGE_KEY = 'osfer_store';
