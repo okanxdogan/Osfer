@@ -113,6 +113,18 @@ export interface Roadmap {
   edges: RoadmapEdge[];
 }
 
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  date: string; // YYYY-MM-DD
+  startTime?: string; // HH:mm
+  endTime?: string; // HH:mm
+  category: 'study' | 'task' | 'exam' | 'personal';
+  color: string;
+  description?: string;
+  createdAt: number;
+}
+
 export interface GlobalState {
   profile: ProfileState;
   timerPrefs: TimerPreferences;
@@ -124,6 +136,7 @@ export interface GlobalState {
   chains: Chain[];
   wisdomQuotes: WisdomQuote[];
   roadmaps: Roadmap[];
+  calendarEvents: CalendarEvent[];
 
   updateProfile: (updates: Partial<ProfileState>) => void;
   updateTimerPrefs: (updates: Partial<TimerPreferences>) => void;
@@ -157,6 +170,10 @@ export interface GlobalState {
   deleteRoadmap: (id: string) => void;
   updateRoadmapNodes: (id: string, nodes: RoadmapNode[]) => void;
   updateRoadmapEdges: (id: string, edges: RoadmapEdge[]) => void;
+
+  addCalendarEvent: (event: Omit<CalendarEvent, 'id' | 'createdAt'>) => void;
+  updateCalendarEvent: (id: string, updates: Partial<CalendarEvent>) => void;
+  deleteCalendarEvent: (id: string) => void;
 
   logFocusSession: (minutes: number) => void;
   resetFocusTime: () => void;

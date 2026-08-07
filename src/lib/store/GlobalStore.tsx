@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import type { GlobalState, ProfileState, TimerPreferences, TimerState, FocusSession, Task, StudyBlock, ReadingDocument, Chain, WisdomQuote, Roadmap, RoadmapNode, RoadmapEdge } from './types';
+import type { GlobalState, ProfileState, TimerPreferences, TimerState, FocusSession, Task, StudyBlock, ReadingDocument, Chain, WisdomQuote, Roadmap, RoadmapNode, RoadmapEdge, CalendarEvent } from './types';
 
 // ── localStorage helpers ──
 const STORAGE_KEY = 'osfer_store';
@@ -16,6 +16,7 @@ interface StoredData {
   chains: Chain[];
   wisdomQuotes: WisdomQuote[];
   roadmaps: Roadmap[];
+  calendarEvents?: CalendarEvent[];
 }
 
 function loadFromStorage(): Partial<StoredData> | null {
@@ -58,6 +59,30 @@ const emptyDefaults: StoredData = {
   chains: [],
   wisdomQuotes: [],
   roadmaps: [],
+  calendarEvents: [
+    {
+      id: 'demo-cal-1',
+      title: 'Yazılım Mimarisi ve Next.js İncelemesi',
+      date: new Date().toISOString().split('T')[0],
+      startTime: '10:00',
+      endTime: '11:30',
+      category: 'study',
+      color: '#3B82F6',
+      description: 'Proje modüllerini ve state akışını gözden geçir.',
+      createdAt: Date.now(),
+    },
+    {
+      id: 'demo-cal-2',
+      title: 'Haftalık Proje Değerlendirmesi',
+      date: new Date().toISOString().split('T')[0],
+      startTime: '14:00',
+      endTime: '15:00',
+      category: 'task',
+      color: '#10B981',
+      description: 'Tamamlanan adımları ve hedefleri kontrol et.',
+      createdAt: Date.now(),
+    }
+  ]
 };
 
 const GlobalContext = createContext<GlobalState | undefined>(undefined);
@@ -74,6 +99,7 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
   const [chains, setChains] = useState<Chain[]>([]);
   const [wisdomQuotes, setWisdomQuotes] = useState<WisdomQuote[]>([]);
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(emptyDefaults.calendarEvents || []);
 
   // Hydrate from local file database (with localStorage as fallback)
   useEffect(() => {
@@ -106,6 +132,7 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
         if (saved.chains) setChains(saved.chains);
         if (saved.wisdomQuotes) setWisdomQuotes(saved.wisdomQuotes);
         if (saved.roadmaps) setRoadmaps(saved.roadmaps);
+        if (saved.calendarEvents) setCalendarEvents(saved.calendarEvents);
       }
       setHydrated(true);
     };
@@ -117,11 +144,11 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!hydrated) return;
     const timeoutId = setTimeout(async () => {
-      const dataToSave = { profile, timerPrefs, timerState, focusSessions, tasks, studyBlocks, documents, chains, wisdomQuotes, roadmaps };
-      
+      const dataToSave = { profile, timerPrefs, timerState, focusSessions, tasks, studyBlocks, documents, chains, wisdomQuotes, roadmaps, calendarEvents };
+
       // 1. Save to LocalStorage as a fallback
       saveToStorage(dataToSave);
-      
+
       // 2. Save to local file DB on disk
       try {
         await fetch('/api/db', {
@@ -135,9 +162,9 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
         console.error('Failed to save to local file DB:', err);
       }
     }, 1000); // 1-second debounce
-    
+
     return () => clearTimeout(timeoutId);
-  }, [hydrated, profile, timerPrefs, timerState, focusSessions, tasks, studyBlocks, documents, chains, wisdomQuotes, roadmaps]);
+  }, [hydrated, profile, timerPrefs, timerState, focusSessions, tasks, studyBlocks, documents, chains, wisdomQuotes, roadmaps, calendarEvents]);
 
   // ── Profile ──
   const updateProfile = useCallback((u: Partial<ProfileState>) => setProfile(p => ({ ...p, ...u })), []);
@@ -176,11 +203,11 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
   // ── Documents ──
   const addDocument = useCallback((doc: ReadingDocument) => setDocuments(prev => [...prev, doc]), []);
   const updateDocumentProgress = useCallback((id: string, page: number, totalPages?: number) => {
-    setDocuments(prev => prev.map(d => d.id === id ? { 
-      ...d, 
-      currentPage: page, 
+    setDocuments(prev => prev.map(d => d.id === id ? {
+      ...d,
+      currentPage: page,
       totalPages: totalPages ?? d.totalPages,
-      lastOpened: Date.now() 
+      lastOpened: Date.now()
     } : d));
   }, []);
   const updateDocumentAnnotations = useCallback((id: string, page: number, annotations: any[]) => {
@@ -228,6 +255,19 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
     setRoadmaps(prev => prev.map(r => r.id === id ? { ...r, edges } : r));
   }, []);
 
+  // ── Calendar Events ──
+  const addCalendarEvent = useCallback((event: Omit<CalendarEvent, 'id' | 'createdAt'>) => {
+    setCalendarEvents(prev => [...prev, { ...event, id: uid(), createdAt: Date.now() }]);
+  }, []);
+
+  const updateCalendarEvent = useCallback((id: string, updates: Partial<CalendarEvent>) => {
+    setCalendarEvents(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
+  }, []);
+
+  const deleteCalendarEvent = useCallback((id: string) => {
+    setCalendarEvents(prev => prev.filter(e => e.id !== id));
+  }, []);
+
   // ── Focus ──
   const logFocusSession = useCallback((minutes: number) => {
     setProfile(p => ({ ...p, totalFocusMinutes: p.totalFocusMinutes + minutes }));
@@ -240,7 +280,7 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const storeValue = useMemo(() => ({
-    profile, timerPrefs, timerState, focusSessions, tasks, studyBlocks, documents, chains, wisdomQuotes, roadmaps,
+    profile, timerPrefs, timerState, focusSessions, tasks, studyBlocks, documents, chains, wisdomQuotes, roadmaps, calendarEvents,
     updateProfile, updateTimerPrefs, updateTimerState,
     addTask, toggleTask, deleteTask,
     addStudyBlock, renameStudyBlock, deleteStudyBlock, addStudyTask, toggleStudyTask, deleteStudyTask,
@@ -248,9 +288,10 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
     addChain, deleteChain, setChainDay, clearChainDay,
     addWisdomQuote, deleteWisdomQuote,
     addRoadmap, deleteRoadmap, updateRoadmapNodes, updateRoadmapEdges,
+    addCalendarEvent, updateCalendarEvent, deleteCalendarEvent,
     logFocusSession, resetFocusTime,
   }), [
-    profile, timerPrefs, timerState, focusSessions, tasks, studyBlocks, documents, chains, wisdomQuotes, roadmaps,
+    profile, timerPrefs, timerState, focusSessions, tasks, studyBlocks, documents, chains, wisdomQuotes, roadmaps, calendarEvents,
     updateProfile, updateTimerPrefs, updateTimerState,
     addTask, toggleTask, deleteTask,
     addStudyBlock, renameStudyBlock, deleteStudyBlock, addStudyTask, toggleStudyTask, deleteStudyTask,
@@ -258,6 +299,7 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
     addChain, deleteChain, setChainDay, clearChainDay,
     addWisdomQuote, deleteWisdomQuote,
     addRoadmap, deleteRoadmap, updateRoadmapNodes, updateRoadmapEdges,
+    addCalendarEvent, updateCalendarEvent, deleteCalendarEvent,
     logFocusSession, resetFocusTime,
   ]);
 

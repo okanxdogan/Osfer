@@ -28,5 +28,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 
-# local database
-/data/
+# vercel temp files
+.vercel_*.js
+
