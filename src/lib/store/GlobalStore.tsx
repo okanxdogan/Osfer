@@ -118,8 +118,18 @@ export function GlobalStoreProvider({ children }: { children: React.ReactNode })
       }
 
       if (!saved) {
+        try {
+          const res = await fetch('/db.json');
+          if (res.ok) {
+            saved = await res.json();
+          }
+        } catch { /* fallback to local storage */ }
+      }
+
+      if (!saved) {
         saved = loadFromStorage();
       }
+
 
       if (saved) {
         if (saved.profile) setProfile({ ...emptyDefaults.profile, ...saved.profile });
