@@ -134,7 +134,10 @@ function mergeChainsData(...chainSources: (Chain[] | undefined)[]): Chain[] {
     const hydrate = async () => {
       let saved: Partial<StoredData> | null = null;
       try {
-        const res = await fetch(`/api/db?t=${Date.now()}`);
+        let res = await fetch(`/api/data?t=${Date.now()}`);
+        if (!res.ok) {
+          res = await fetch(`/api/db?t=${Date.now()}`);
+        }
         if (res.ok) {
           const json = await res.json();
           if (json && json.data) {
