@@ -15,64 +15,43 @@ const ensureDir = () => {
   }
 };
 
-const isValidDb = (data: any) => {
-  return data && typeof data === 'object' && (Boolean(data.profile) || Boolean(data.chains) || Boolean(data.documents));
-};
-
-const getDbData = () => {
-  try {
-    if (fs.existsSync(DB_PATH)) {
-      const rawData = fs.readFileSync(DB_PATH, 'utf-8');
-      const parsed = JSON.parse(rawData);
-      if (isValidDb(parsed)) {
-        return parsed;
-      }
-    }
-  } catch (e) {}
-
-  const rawDefault = (defaultData as any)?.default || defaultData;
-  if (isValidDb(rawDefault)) {
-    return rawDefault;
-  }
-  return defaultData;
-};
-
-const getFallbackData = () => {
-  try {
-    const raw = (defaultData as any)?.default || defaultData;
-    return JSON.parse(JSON.stringify(raw));
-  } catch (e) {
-    return defaultData;
-  }
+const extractDb = (input: any): any => {
+  if (!input || typeof input !== 'object') return null;
+  if (input.profile || input.chains || input.documents) return input;
+  if (input.default && (input.default.profile || input.default.chains || input.default.documents)) return input.default;
+  if (input.data && (input.data.profile || input.data.chains || input.data.documents)) return input.data;
+  return null;
 };
 
 export async function GET() {
+  let data = null;
+
   try {
     if (fs.existsSync(DB_PATH)) {
       const rawData = fs.readFileSync(DB_PATH, 'utf-8');
       const parsed = JSON.parse(rawData);
-      if (isValidDb(parsed)) {
-        return NextResponse.json({ data: parsed });
-      }
+      data = extractDb(parsed);
     }
   } catch (e) {}
 
-  const fallback = getFallbackData();
-  return NextResponse.json({ data: fallback }, {
+  if (!data) {
+    data = extractDb(defaultData);
+  }
+
+  return NextResponse.json({ data }, {
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate',
     }
   });
 }
 
-
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    if (isValidDb(body)) {
+    const clean = extractDb(body);
+    if (clean) {
       ensureDir();
-      fs.writeFileSync(DB_PATH, JSON.stringify(body, null, 2), 'utf-8');
+      fs.writeFileSync(DB_PATH, JSON.stringify(clean, null, 2), 'utf-8');
     }
     return NextResponse.json({ success: true });
   } catch (error) {
@@ -80,4 +59,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to write data' }, { status: 500 });
   }
 }
+
 
