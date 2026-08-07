@@ -37,6 +37,15 @@ const getDbData = () => {
   return defaultData;
 };
 
+const getFallbackData = () => {
+  try {
+    const raw = (defaultData as any)?.default || defaultData;
+    return JSON.parse(JSON.stringify(raw));
+  } catch (e) {
+    return defaultData;
+  }
+};
+
 export async function GET() {
   try {
     if (fs.existsSync(DB_PATH)) {
@@ -48,13 +57,14 @@ export async function GET() {
     }
   } catch (e) {}
 
-  const fallback = (defaultData as any)?.default || defaultData;
+  const fallback = getFallbackData();
   return NextResponse.json({ data: fallback }, {
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate',
     }
   });
 }
+
 
 
 export async function POST(req: NextRequest) {
