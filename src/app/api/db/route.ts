@@ -35,14 +35,17 @@ export async function GET() {
 
   const db = (fileData && fileData.profile) ? fileData : DB_DATA;
 
-  return NextResponse.json({ data: db }, {
+  return new Response(JSON.stringify({ data: db }), {
+    status: 200,
     headers: {
+      'Content-Type': 'application/json',
       'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
       'CDN-Cache-Control': 'no-store',
       'Vercel-CDN-Cache-Control': 'no-store',
-    }
+    },
   });
 }
+
 
 
 
