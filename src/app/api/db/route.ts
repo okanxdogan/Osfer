@@ -12,12 +12,16 @@ const ensureDir = () => {
   }
 };
 
+const isValidDb = (data: any) => {
+  return data && typeof data === 'object' && (Boolean(data.profile) || Boolean(data.chains) || Boolean(data.documents));
+};
+
 const getDbData = () => {
   try {
     if (fs.existsSync(DB_PATH)) {
       const rawData = fs.readFileSync(DB_PATH, 'utf-8');
       const parsed = JSON.parse(rawData);
-      if (parsed && Object.keys(parsed).length > 0) {
+      if (isValidDb(parsed)) {
         return parsed;
       }
     }
@@ -30,13 +34,13 @@ export async function GET() {
   return NextResponse.json({ data });
 }
 
-
-
 export async function POST(req: NextRequest) {
   try {
-    ensureDir();
     const body = await req.json();
-    fs.writeFileSync(DB_PATH, JSON.stringify(body, null, 2), 'utf-8');
+    if (isValidDb(body)) {
+      ensureDir();
+      fs.writeFileSync(DB_PATH, JSON.stringify(body, null, 2), 'utf-8');
+    }
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Failed to write local DB:', error);
