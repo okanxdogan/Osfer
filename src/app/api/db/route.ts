@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import defaultData from '../../../../data/db.json';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'db.json');
 
@@ -14,16 +15,20 @@ const ensureDir = () => {
 export async function GET() {
   try {
     ensureDir();
-    if (!fs.existsSync(DB_PATH)) {
-      return NextResponse.json({ data: null });
+    if (fs.existsSync(DB_PATH)) {
+      const rawData = fs.readFileSync(DB_PATH, 'utf-8');
+      const parsed = JSON.parse(rawData);
+      if (parsed && Object.keys(parsed).length > 0) {
+        return NextResponse.json({ data: parsed });
+      }
     }
-    const rawData = fs.readFileSync(DB_PATH, 'utf-8');
-    return NextResponse.json({ data: JSON.parse(rawData) });
+    return NextResponse.json({ data: defaultData });
   } catch (error) {
-    console.error('Failed to read local DB:', error);
-    return NextResponse.json({ error: 'Failed to read data' }, { status: 500 });
+    console.error('Failed to read local DB, returning static bundle data:', error);
+    return NextResponse.json({ data: defaultData });
   }
 }
+
 
 export async function POST(req: NextRequest) {
   try {
