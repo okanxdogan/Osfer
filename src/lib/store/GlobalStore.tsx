@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { GlobalState, ProfileState, TimerPreferences, TimerState, FocusSession, Task, StudyBlock, ReadingDocument, Chain, WisdomQuote, Roadmap, RoadmapNode, RoadmapEdge, CalendarEvent } from './types';
 
+import initialDbData from '@/data/db.json';
+
 // ── localStorage helpers ──
 const STORAGE_KEY = 'osfer_store';
 
@@ -85,21 +87,27 @@ const emptyDefaults: StoredData = {
   ]
 };
 
+const initialStoreDefaults: StoredData = {
+  ...emptyDefaults,
+  ...(initialDbData as unknown as Partial<StoredData>),
+};
+
 const GlobalContext = createContext<GlobalState | undefined>(undefined);
 
 export function GlobalStoreProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
-  const [profile, setProfile] = useState<ProfileState>(emptyDefaults.profile);
-  const [timerPrefs, setTimerPrefs] = useState<TimerPreferences>(emptyDefaults.timerPrefs);
-  const [timerState, setTimerState] = useState<TimerState>(emptyDefaults.timerState);
-  const [focusSessions, setFocusSessions] = useState<FocusSession[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [studyBlocks, setStudyBlocks] = useState<StudyBlock[]>([]);
-  const [documents, setDocuments] = useState<ReadingDocument[]>([]);
-  const [chains, setChains] = useState<Chain[]>([]);
-  const [wisdomQuotes, setWisdomQuotes] = useState<WisdomQuote[]>([]);
-  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(emptyDefaults.calendarEvents || []);
+  const [profile, setProfile] = useState<ProfileState>(initialStoreDefaults.profile);
+  const [timerPrefs, setTimerPrefs] = useState<TimerPreferences>(initialStoreDefaults.timerPrefs);
+  const [timerState, setTimerState] = useState<TimerState>(initialStoreDefaults.timerState);
+  const [focusSessions, setFocusSessions] = useState<FocusSession[]>(initialStoreDefaults.focusSessions || []);
+  const [tasks, setTasks] = useState<Task[]>(initialStoreDefaults.tasks || []);
+  const [studyBlocks, setStudyBlocks] = useState<StudyBlock[]>(initialStoreDefaults.studyBlocks || []);
+  const [documents, setDocuments] = useState<ReadingDocument[]>(initialStoreDefaults.documents || []);
+  const [chains, setChains] = useState<Chain[]>(initialStoreDefaults.chains || []);
+  const [wisdomQuotes, setWisdomQuotes] = useState<WisdomQuote[]>(initialStoreDefaults.wisdomQuotes || []);
+  const [roadmaps, setRoadmaps] = useState<Roadmap[]>(initialStoreDefaults.roadmaps || []);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(initialStoreDefaults.calendarEvents || emptyDefaults.calendarEvents || []);
+
 
   // Hydrate from local file database (with localStorage as fallback)
   useEffect(() => {
