@@ -27,18 +27,13 @@ export async function GET() {
       const rawData = fs.readFileSync(DB_PATH, 'utf-8');
       const parsed = JSON.parse(rawData);
       if (isValidDb(parsed)) {
-        return NextResponse.json({ data: parsed }, {
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-            'CDN-Cache-Control': 'no-store',
-            'Vercel-CDN-Cache-Control': 'no-store',
-          }
-        });
+        return NextResponse.json({ data: parsed });
       }
     }
   } catch (e) {}
 
-  return NextResponse.json({ data: DB_DATA }, {
+  const payload = (DB_DATA as any).default || DB_DATA;
+  return NextResponse.json({ data: payload }, {
     headers: {
       'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
       'CDN-Cache-Control': 'no-store',
@@ -46,6 +41,7 @@ export async function GET() {
     }
   });
 }
+
 
 
 export async function POST(req: NextRequest) {
