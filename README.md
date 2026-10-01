@@ -3,7 +3,7 @@
 
 # Osfer
 
-website : https://osfer.netlify.app/
+website : https://osfer.vercel.app/
 
 A multi-purpose personal productivity system for planning, tracking progress, managing habits, reading, and focus sessions in a unified dashboard.
 
